@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專業英文教學評語系統 | Pro Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* 現代專業配色系統 (Slate & Indigo) */
+            --bg-body: #f1f5f9;         /* 淺灰背景 */
+            --bg-sidebar: #0f172a;      /* 深藍黑側邊欄 */
+            --bg-card: #ffffff;
+            
+            --primary: #4f46e5;         /* 靛青色 */
+            --primary-hover: #4338ca;
+            --primary-light: #e0e7ff;
+            
+            --text-main: #334155;       /* Slate-700 */
+            --text-muted: #64748b;      /* Slate-500 */
+            --text-on-dark: #cbd5e1;
+            
+            --border: #e2e8f0;
+            
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', "Microsoft JhengHei", system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-body);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            color: var(--text-main);
+            font-size: 14px;
+        }
+
+        /* 滾動條美化 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* === 左側導覽列 === */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-sidebar);
+            color: var(--text-on-dark);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            z-index: 20;
+            box-shadow: 4px 0 24px rgba(0,0,0,0.1);
+        }
+
+        .brand {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
+        }
+        .brand span { color: var(--primary); } 
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #64748b;
+        }
+
+        textarea#studentNamesInput {
+            width: 100%;
+            height: 100px;
+            padding: 12px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #fff;
+            border-radius: 8px;
+            resize: none;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            transition: border-color 0.2s;
+        }
+        textarea#studentNamesInput:focus { outline: none; border-color: var(--primary); }
+
+        .btn {
+            width: 100%; padding: 10px; border: none; border-radius: 6px;
+            cursor: pointer; font-weight: 600; font-size: 0.9rem;
+            transition: all 0.2s ease; display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+
+        .btn-primary { background-color: var(--primary); color: white; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2); }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+        
+        .btn-outline { background: transparent; border: 1px solid #334155; color: #94a3b8; margin-top: auto; font-size: 0.85rem;}
+        .btn-outline:hover { border-color: #fff; color: #fff; background: rgba(255,255,255,0.05); }
+
+        .btn-ghost-danger { background: transparent; color: #ef4444; margin-top: 8px; font-size: 0.8rem; opacity: 0.8;}
+        .btn-ghost-danger:hover { opacity: 1; background: rgba(239, 68, 68, 0.1); border-radius: 6px;}
+
+        .student-list-container {
+            flex: 1; overflow-y: auto; margin-top: 20px; padding-right: 4px;
+        }
+
+        .student-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 12px; margin-bottom: 6px; border-radius: 6px;
+            cursor: pointer; transition: all 0.2s; font-size: 0.9rem; border-left: 3px solid transparent;
+        }
+        .student-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .student-item.active { background: rgba(79, 70, 229, 0.15); border-left-color: var(--primary); color: #fff; font-weight: 500; }
+        
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #334155; transition: 0.3s; }
+        .status-dot.done { background: var(--success); box-shadow: 0 0 8px rgba(16, 185, 129, 0.4); }
+
+        /* === 右側主內容 === */
+        .main-content {
+            flex: 1; display: flex; flex-direction: column; padding: 24px; gap: 16px; height: 100vh;
+        }
+
+        .top-bar {
+            background: var(--bg-card); padding: 12px 20px; border-radius: 12px;
+            box-shadow: var(--shadow-sm); display: flex; justify-content: space-between; align-items: center;
+            flex-shrink: 0; border: 1px solid var(--border);
+        }
+
+        .student-info { display: flex; align-items: center; gap: 20px; }
+        .student-name-display { font-size: 1.25rem; font-weight: 700; color: var(--text-main); }
+        
+        .segmented-control { background: #f1f5f9; padding: 4px; border-radius: 8px; display: inline-flex; }
+        .segmented-control input { display: none; }
+        .segmented-control label {
+            padding: 6px 16px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
+            cursor: pointer; border-radius: 6px; transition: all 0.2s; user-select: none;
+        }
+        .segmented-control input:checked + label { background: #fff; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        .btn-action {
+            background: var(--success); color: white; padding: 8px 20px; border-radius: 8px; border: none;
+            font-weight: 600; font-size: 0.9rem; cursor: pointer; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.2);
+            transition: 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-action:hover { background-color: #059669; transform: translateY(-1px); }
+
+        .tags-wrapper {
+            flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; min-height: 0;
+        }
+
+        .category-card {
+            background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border);
+            padding: 16px; display: flex; flex-direction: column; box-shadow: var(--shadow-sm); transition: 0.2s;
+        }
+        .category-card:hover { box-shadow: var(--shadow-md); border-color: #cbd5e1; }
+
+        .category-header {
+            font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;
+            letter-spacing: 0.05em; margin-bottom: 12px; display: flex; align-items: center;
+        }
+        .category-header::before {
+            content: ''; display: inline-block; width: 6px; height: 6px; background: var(--primary); margin-right: 8px; border-radius: 50%;
+        }
+
+        .tags-grid { display: flex; flex-wrap: wrap; gap: 8px; overflow-y: auto; align-content: flex-start; }
+
+        .tag-btn {
+            background: #f8fafc; border: 1px solid #e2e8f0; padding: 6px 14px; border-radius: 20px;
+            font-size: 0.85rem; color: var(--text-main); cursor: pointer; user-select: none; transition: all 0.15s ease; font-weight: 500;
+        }
+        .tag-btn:hover { background: #fff; border-color: var(--primary); color: var(--primary); transform: translateY(-1px); }
+        .tag-btn.selected { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 2px 5px rgba(79, 70, 229, 0.3); }
+        .tag-btn.warning:hover { border-color: var(--warning); color: var(--warning); }
+        .tag-btn.warning.selected { background: var(--warning); border-color: var(--warning); color: white; box-shadow: 0 2px 5px rgba(245, 158, 11, 0.3); }
+
+        .output-wrapper { flex-shrink: 0; height: 25vh; min-height: 150px; display: flex; gap: 16px; }
+
+        .output-card {
+            flex: 1; background: var(--bg-card); border-radius: 12px; padding: 16px;
+            display: flex; flex-direction: column; border: 1px solid var(--border); box-shadow: var(--shadow-sm);
+        }
+
+        .output-label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
+
+        textarea.result-text {
+            flex: 1; width: 100%; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px;
+            font-size: 0.95rem; line-height: 1.6; resize: none; font-family: inherit; background-color: #f8fafc; transition: all 0.2s;
+        }
+        textarea.result-text:focus { outline: none; border-color: var(--primary); background-color: white; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(4px); z-index: 100; justify-content: center; align-items: center;
+        }
+        .modal-box {
+            background: white; width: 750px; max-width: 90%; height: 85%; border-radius: 16px;
+            display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden;
+        }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: #f8fafc; }
+        .preview-area { flex: 1; overflow-y: auto; padding: 24px; background: #fff; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; background: #f8fafc; }
+        .btn-secondary { background-color: #e2e8f0; color: var(--text-main); padding: 8px 16px; border-radius: 8px; border:none; cursor: pointer; font-weight: 600; }
+        .btn-download { background-color: #2563eb; color: white; padding: 8px 16px; border-radius: 8px; border:none; cursor: pointer; font-weight: 600; }
+        
+        table.preview-table { width: 100%; border-collapse: collapse; font-family: 'Times New Roman', serif; }
+        table.preview-table td, table.preview-table th { border: 1px solid #000; padding: 12px; vertical-align: top; text-align: left;}
+        table.preview-table th { background-color: #f3f4f6; width: 15%; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="brand"><span>✨</span> Comment Pro</div>
+        <div class="input-group">
+            <label>Student List</label>
+            <textarea id="studentNamesInput" placeholder="Paste names here..."></textarea>
+            <button class="btn btn-primary" onclick="importStudents()"><span>📥 Import List</span></button>
+        </div>
+        <div class="student-list-container" id="studentListContainer">
+            <div style="color: #475569; text-align: center; margin-top: 40px; font-size: 0.85rem; font-style: italic;">No students loaded</div>
+        </div>
+        <div style="margin-top: 10px;">
+            <button class="btn btn-outline" onclick="showExportModal()"><span>📤 Export Word</span></button>
+            <button class="btn btn-ghost-danger" onclick="clearAllData()">Reset System</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <div class="student-info">
+                <div class="student-name-display" id="currentStudentName">Select a student</div>
+                <div class="segmented-control" id="genderSwitch" style="visibility: hidden;">
+                    <input type="radio" name="gender" value="boy" id="g_boy" onchange="updateGender('boy')"><label for="g_boy">Boy 👦</label>
+                    <input type="radio" name="gender" value="girl" id="g_girl" onchange="updateGender('girl')"><label for="g_girl">Girl 👧</label>
+                </div>
+            </div>
+            <button class="btn-action" onclick="saveAndNext()"><span>Save & Next</span> ➔</button>
+        </header>
+
+        <section class="tags-wrapper" id="tagsContainer"></section>
+
+        <section class="output-wrapper">
+            <div class="output-card">
+                <div class="output-label">中文評語 (Chinese)</div>
+                <textarea id="cnOutput" class="result-text" oninput="manualEdit('cn')" placeholder="Select tags..."></textarea>
+            </div>
+            <div class="output-card">
+                <div class="output-label">英文評語 (English)</div>
+                <textarea id="enOutput" class="result-text" oninput="manualEdit('en')" placeholder="Auto-generated..."></textarea>
+            </div>
+        </section>
+    </main>
+
+    <div id="exportModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>📄 Export Preview</h3>
+                <button style="background:none;border:none;font-size:1.5rem;cursor:pointer;color:#64748b;" onclick="document.getElementById('exportModal').style.display='none'">&times;</button>
+            </div>
+            <div class="preview-area" id="exportPreviewArea"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="document.getElementById('exportModal').style.display='none'">Cancel</button>
+                <button class="btn-download" onclick="downloadWord()">📥 Download .doc</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const commentData = [
+        {
+            category: "1. 課堂學習態度 (Attitude)",
+            items: [
+                { id: "active", label: "積極參與", cn: "{name}上課積極投入，熱忱十足。", en: "{Name} is active and enthusiastic in class." },
+                { id: "focused", label: "專注聽講", cn: "學習專注，緊跟教學節奏。", en: "{He/She} is focused and follows instructions well." },
+                { id: "chatty", label: "熱衷交談", isWarning: true, cn: "課堂間較愛說話，需提升專注。", en: "{Name} chats often; needs to focus better." },
+                { id: "distracted", label: "容易分心", isWarning: true, cn: "容易分心，需提高注意力。", en: "Easily distracted; needs to pay closer attention." },
+                { id: "shy", label: "害羞安靜", cn: "個性害羞，但能完成任務。", en: "Shy but completes tasks well with guidance." }
+            ]
+        },
+        {
+            category: "2. 口說與發音 (Speaking)",
+            items: [
+                { id: "good_pron", label: "發音標準", cn: "發音標準清晰，語調自然。", en: "{His/Her} pronunciation is clear and natural." },
+                { id: "loud", label: "聲音宏亮", cn: "朗讀聲音宏亮，展現自信。", en: "{He/She} reads aloud clearly with confidence." },
+                { id: "speak_more", label: "需多開口", isWarning: true, cn: "建議多開口說，增加流利度。", en: "Encourage to speak more to improve fluency." }
+            ]
+        },
+        {
+            category: "3. 作業與考試 (Homework)",
+            items: [
+                { id: "hw_good", label: "作業優良", cn: "作業書寫工整，準時繳交。", en: "Assignments are always neat and punctual." },
+                { id: "vocab_rich", label: "單字豐富", cn: "單字量豐富，運用靈活。", en: "Vocabulary is rich and used flexibly." },
+                { id: "vocab_improved", label: "單字有進步", cn: "單字量較之前進步，請繼續累積。", en: "Vocabulary has improved; please keep building it up." },
+                { id: "grammar_good", label: "文法概念不錯", cn: "文法句型概念不錯，運用正確。", en: "Grammar concepts are clear and applied correctly." },
+                { id: "grammar_improved", label: "文法有進步", cn: "文法句型概念較之前清晰，進步許多。", en: "Grammar concepts are clearer than before; much improved." },
+                { id: "vocab_poor", label: "需擴充單字", isWarning: true, cn: "單字量不足，需持續背誦。", en: "Vocabulary is limited; needs daily practice." },
+                { id: "grammar_weak", label: "文法待加強", isWarning: true, cn: "文法觀念待釐清，需多練句型。", en: "Grammar needs work; practice sentence patterns more." },
+                { id: "spelling_weak", label: "加強拼寫", isWarning: true, cn: "拼寫常有誤，需多動筆練習。", en: "Spelling needs improvement; practice writing more." },
+                { id: "hw_late", label: "作業遲交", isWarning: true, cn: "作業常遲交，需加強時間管理。", en: "Assignments are often late; improve time management." },
+                { id: "hw_missing", label: "缺交嚴重", isWarning: true, cn: "缺交嚴重，請家長協助督促。", en: "Assignments missing often; parental supervision needed." }
+            ]
+        },
+         {
+            category: "4. 總結建議 (Conclusion)",
+            items: [
+                { id: "keep_up", label: "繼續保持", cn: "表現優秀，請繼續保持！", en: "Excellent work, keep it up!" },
+                { id: "improved", label: "進步顯著", cn: "本學期進步顯著，值得嘉許。", en: "Significant progress this semester, well done." },
+                { id: "dont_give_up", label: "切勿氣餒", cn: "雖成績未達預期，請勿氣餒，持續努力必能進步。", en: "Don't be discouraged by current results; persistent effort will lead to success." },
+                { id: "keep_trying", label: "再接再厲", cn: "不要放棄，多花時間練習，表現一定會更棒。", en: "Don't give up; spend more time practicing and you will excel." },
+                { id: "expect", label: "拭目以待", cn: "期待未來有更優異的表現。", en: "Looking forward to better performance in the future." },
+                { id: "potential", label: "潛力無限", cn: "極具語言天分，潛力無限。", en: "Great potential in language learning." }
+            ]
+        }
+    ];
+
+    let students = []; 
+    let currentStudentIndex = -1;
+
+    function initUI() {
+        const container = document.getElementById('tagsContainer');
+        container.innerHTML = '';
+        commentData.forEach(cat => {
+            let card = document.createElement('div'); card.className = 'category-card';
+            let header = document.createElement('div'); header.className = 'category-header'; header.innerText = cat.category;
+            card.appendChild(header);
+            let grid = document.createElement('div'); grid.className = 'tags-grid';
+            cat.items.forEach(item => {
+                let btn = document.createElement('div'); btn.className = `tag-btn ${item.isWarning ? 'warning' : ''}`;
+                btn.innerText = item.label; btn.dataset.id = item.id; btn.onclick = () => toggleTag(item);
+                grid.appendChild(btn);
+            });
+            card.appendChild(grid); container.appendChild(card);
+        });
+    }
+
+    function importStudents() {
+        const input = document.getElementById('studentNamesInput').value;
+        if (!input.trim()) return alert("Please enter student names.");
+        const names = input.split('\n').filter(n => n.trim() !== '');
+        if (students.length > 0 && !confirm("Overwrite current list?")) return;
+        students = names.map(name => ({ name: name.trim(), gender: 'boy', tags: [], manualCN: '', manualEN: '', isDone: false }));
+        renderStudentList();
+        if(students.length > 0) selectStudent(0);
+        document.getElementById('studentNamesInput').value = '';
+    }
+
+    function clearAllData() {
+        if(!confirm("⚠️ Delete all data?")) return;
+        students = []; currentStudentIndex = -1;
+        document.getElementById('studentListContainer').innerHTML = '<div style="color: #475569; text-align: center; margin-top: 40px; font-size: 0.85rem; font-style: italic;">No students loaded</div>';
+        document.getElementById('currentStudentName').innerText = "Select a student";
+        document.getElementById('genderSwitch').style.visibility = 'hidden';
+        document.getElementById('cnOutput').value = ""; document.getElementById('enOutput').value = "";
+        updateTagsUI();
+    }
+
+    function renderStudentList() {
+        const container = document.getElementById('studentListContainer'); container.innerHTML = '';
+        if (students.length === 0) return;
+        students.forEach((stu, index) => {
+            let div = document.createElement('div'); div.className = `student-item ${index === currentStudentIndex ? 'active' : ''}`;
+            div.onclick = () => selectStudent(index);
+            div.innerHTML = `<div>${stu.name}</div><div class="status-dot ${stu.isDone ? 'done' : ''}"></div>`;
+            container.appendChild(div);
+        });
+    }
+
+    function selectStudent(index) {
+        currentStudentIndex = index; const stu = students[index];
+        document.getElementById('currentStudentName').innerText = stu.name;
+        document.getElementById('genderSwitch').style.visibility = 'visible';
+        document.querySelector(`input[name="gender"][value="${stu.gender}"]`).checked = true;
+        updateTagsUI();
+        if (stu.manualCN || stu.manualEN) { document.getElementById('cnOutput').value = stu.manualCN; document.getElementById('enOutput').value = stu.manualEN; }
+        else { generateText(); }
+        renderStudentList();
+    }
+
+    function updateGender(gender) {
+        if (currentStudentIndex === -1) return; students[currentStudentIndex].gender = gender; generateText(); 
+    }
+
+    function toggleTag(tagItem) {
+        if (currentStudentIndex === -1) return alert("Please select a student first.");
+        const stu = students[currentStudentIndex];
+        const existsIndex = stu.tags.findIndex(t => t.id === tagItem.id);
+        if (existsIndex > -1) stu.tags.splice(existsIndex, 1); else stu.tags.push(tagItem);
+        updateTagsUI(); generateText(); stu.isDone = true; renderStudentList();
+    }
+
+    function updateTagsUI() {
+        document.querySelectorAll('.tag-btn').forEach(el => el.classList.remove('selected'));
+        if (currentStudentIndex === -1) return;
+        const stu = students[currentStudentIndex]; const selectedIds = stu.tags.map(t => t.id);
+        document.querySelectorAll('.tag-btn').forEach(el => { if (selectedIds.includes(el.dataset.id)) el.classList.add('selected'); });
+    }
+
+    function generateText() {
+        if (currentStudentIndex === -1) return;
+        const stu = students[currentStudentIndex]; let cnText = "", enText = "";
+        stu.tags.forEach(tag => { cnText += processTemplate(tag.cn, stu) + ""; enText += processTemplate(tag.en, stu) + " "; });
+        document.getElementById('cnOutput').value = cnText; document.getElementById('enOutput').value = enText;
+        stu.manualCN = cnText; stu.manualEN = enText;
+    }
+
+    function processTemplate(text, stu) {
+        let res = text; const isBoy = stu.gender === 'boy';
+        res = res.replace(/{name}/gi, stu.name);
+        res = res.replace(/{He\/She}/g, isBoy ? "He" : "She"); res = res.replace(/{he\/she}/g, isBoy ? "he" : "she");
+        res = res.replace(/{His\/Her}/g, isBoy ? "His" : "Her"); res = res.replace(/{his\/her}/g, isBoy ? "his" : "her");
+        res = res.replace(/{他\/她}/g, isBoy ? "他" : "她");
+        return res;
+    }
+
+    function manualEdit(lang) {
+        if (currentStudentIndex === -1) return; const stu = students[currentStudentIndex];
+        if (lang === 'cn') stu.manualCN = document.getElementById('cnOutput').value; else stu.manualEN = document.getElementById('enOutput').value;
+        stu.isDone = true; renderStudentList();
+    }
+
+    function saveAndNext() {
+        if (currentStudentIndex === -1) return; students[currentStudentIndex].isDone = true; renderStudentList();
+        if (currentStudentIndex < students.length - 1) selectStudent(currentStudentIndex + 1); else alert("All students completed!");
+    }
+
+    function showExportModal() {
+        if (students.length === 0) return alert("No data to export.");
+        const previewArea = document.getElementById('exportPreviewArea'); previewArea.innerHTML = '';
+        let tableHTML = '<table class="preview-table">';
+        students.forEach(stu => {
+            const cn = stu.manualCN || ""; const en = stu.manualEN || "";
+            tableHTML += `<tr><th valign="top">${stu.name}</th><td valign="top"><div>${cn}</div><div style="margin-top:8px;">${en}</div></td></tr>`;
+        });
+        tableHTML += '</table>'; previewArea.innerHTML = tableHTML; document.getElementById('exportModal').style.display = 'flex';
+    }
+
+    function downloadWord() {
+        const header = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export</title><style>table{border-collapse:collapse;width:100%;font-family:'Times New Roman';}td,th{border:1px solid black;padding:10px;vertical-align:top;text-align:left;}.name-col{width:15%;font-weight:bold;background-color:#f0f0f0;}</style></head><body><table>`;
+        let body = "";
+        students.forEach(stu => {
+            const cn = stu.manualCN || ""; const en = stu.manualEN || "";
+            body += `<tr><td class="name-col">${stu.name}</td><td><div>${cn}</div><br><div>${en}</div></td></tr>`;
+        });
+        const footer = "</table></body></html>";
+        const source = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(header + body + footer);
+        const link = document.createElement("a"); link.href = source; link.download = 'Comments_Export.doc'; link.click();
+    }
+
+    initUI();
+</script>
+
+</body>
+</html>
